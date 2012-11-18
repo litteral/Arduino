@@ -54,11 +54,10 @@ void loop() {
     myservo.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(50);    // waits 15ms for the servo to reach the position 
     //Serial.println("");
-    Serial.print("X");
-    Serial.print(pos);
-    Serial.print("V");
-    Serial.println(uS / US_ROUNDTRIP_CM); 
-
+    Serial.print("X"); // this is what the processing app is looking for to mark Posistion
+    Serial.print(pos); // this is what the processing app is looking for to mark Posistion
+    Serial.print("V"); // this is what the processing app is looking for to mark Distance
+    Serial.println(uS / US_ROUNDTRIP_CM);  // this is what the processing app is looking for to mark Distance
 
     //delay(100);
   }
