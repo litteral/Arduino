@@ -1,3 +1,8 @@
+// NewPing Library - v1.5 - 08/15/2012
+//
+// AUTHOR/LICENSE:
+// Created by Tim Eckel - teckel@leethost.com
+// Copyright 2012 License: GNU GPL v3 http://www.gnu.org/licenses/gpl
 // ---------------------------------------------------------------------------
 // Example NewPing library sketch that does a ping about 20 times per second.
 // ---------------------------------------------------------------------------
