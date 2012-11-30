@@ -1,5 +1,5 @@
 
-//Binary sketch size: 29,274 bytes (of a 32,256 byte maximum)
+//Binary sketch size: 28,570 bytes (of a 32,256 byte maximum)
 /*
  *  Anemometer code modified for use with an NRG40c Anemometer- 
  *-converted to use a single hall effect sensor
@@ -97,7 +97,7 @@ int period = 3000;           // Measurement period (miliseconds)
 int delaytime = 3000;        // Time between samples (miliseconds)
 int radio = 70; //NRG40c (70) Radius from vertical anemometer axis to a cup center (mm)
 char* winds[] = {
-  "Calm", "Light air", "Light breeze", "Gentle breeze", "Moderate breeze", "Fresh breeze", "Strong breeze", "Moderate gale", "Fresh gale", "Strong gale", "Storm", "Violent storm", "Hurricane"};
+  "Calm", "Light air", "Light breeze", "Gentle breeze", "Moderate breeze", "Fresh breeze", "Strong breeze", "Moderate gale", "Fresh gale", "Strong gale", "Storm", "Violent storm", "AHHHHHHHH!   Hurricane"};
 
 // Variable definitions for Anemometer
 
@@ -178,7 +178,7 @@ void setup()
   bmp.begin();// Connect the Baro/Tmp bob
 
   Serial.println("Arduino R3 Weather Station");
-  Serial.println("BOOTING S.W. Ver 1.5 - Oct-2012");
+  Serial.println("BOOTING S.W. Ver 1.5 - Nov-30-2012");
   Serial.println("ip Address : ");
   Serial.print(ip); //show the local I.P. address for debugging
   Serial.println();
@@ -271,7 +271,7 @@ Time	//16
     float Lux1 =        (tsl.calculateLux(Full, Ir));
     float Chill =       (Twc);// The Wind Chill
     float Lux =         analogRead(photocellPin);        //Custom Lux Reading for the sensor I have. Adjust your resistor to your needs.
-    float Alt =         (bmp.readAltitude(102000)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
+    float Alt =         (bmp.readAltitude(102250)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
     float Baro =        (bmp.readPressure()) * 0.0002953;  //convert Pa to inches of Hg 
     float Inside =      (bmp.readTemperature)(); 
     float Humi =        (dht.readHumidity());              //Read the DHT humidity sensor
@@ -296,134 +296,8 @@ Time	//16
     {
       Chill=Temp;
     }
-   /* 
-    //Next: Read the RTC
-    DateTime now = RTC.now();
-    const uint8_t h = now.hour();
-    const uint8_t hr_12 = h%12;
-
-    //29,008 with Serial Output ? without 27,310 use to debug or send it to your monitor for up to the second weather
-    
-    Serial.println();
-     Serial.print("Time        : ");
-     if(hr_12 < 10){                                       // Zero padding if value less than 10 ie."09" instead of "9"
-     Serial.print(" ");
-     Serial.print((h > 12) ? h - 12 : ((h == 0) ? 12 : h), DEC); // Conversion to AM/PM  
-     }
-     else{
-     Serial.print((h > 12) ? h - 12 : ((h == 0) ? 12 : h), DEC); // Conversion to AM/PM
-     }
-     Serial.print(':');
-     if(now.minute() < 10){                                // Zero padding if value less than 10 ie."09" instead of "9"
-     Serial.print("0");
-     Serial.print(now.minute(), DEC);
-     }
-     else{
-     Serial.print(now.minute(), DEC);
-     }
-     if(h < 12){                                           // Adding the AM/PM sufffix
-     Serial.print(" AM");
-     }
-     else{
-     Serial.print(" PM");
-     }
-     Serial.print("");
-     Serial.println();
-     Serial.print("Date        : " );
-     Serial.print(now.month(), DEC);
-     Serial.print('/');
-     Serial.print(now.day(), DEC);
-     Serial.print('/');
-     Serial.print(now.year(), DEC);
-     Serial.println();
-     //Serial.print(" Starting measurements...");
-     //Serial.println(" finished.");
-     //Serial.print("Sample#     : ");
-     //Serial.println(Sample);    
-     //Serial.print("Counter     : ");
-     //Serial.println(counter);
-     //Serial.print("RPM         : ");
-     //Serial.println(RPM);
-     Serial.print("Altitude    : ");
-     Serial.println(Alt);
-     Serial.print("Wind speed  : ");
-     Serial.println(wind); // pin (D2)
-     Serial.print("Lux1        : ");
-     Serial.println(Lux1);
-     Serial.print("InfraRed    : ");
-     Serial.println(Ir);
-     Serial.print("Visible     : ");
-     Serial.println(Visi);
-     Serial.println();
-     
-
-     Serial.print("Wind force  : ");
-     Serial.println(winds[windforce]);
-     //Serial.print("System Volts: ");
-     //Serial.println(readVcc() / 1000. , DEC); // ommited to save Computations and space, goto top to uncomment the math!
-     Serial.print("Solar Volts : ");
-     Serial.println(Light) ;
-     Serial.print("Altitude    : ");
-     Serial.println(Alt);
-     Serial.print("Baro        : ");
-     Serial.println(Baro);
-     Serial.print("Humidity    : ");
-     Serial.println(Humi);
-     Serial.print("heatIndex   : ");
-     Serial.println(HI);
-     Serial.print("Outside     : ");
-     Serial.println(Temp);
-     Serial.print("WindChill   : ");
-     Serial.println(Chill);
-     Serial.print("Dew Point   : ");
-     Serial.println(Dew);
-     Serial.print("Inside      : ");
-     Serial.println(Inside);
-     Serial.print("Lux         : ");
-     Serial.println(Lux);//pin (A3)
-     Serial.print("Lux1        : ");
-     Serial.println(Lux1);
-     Serial.print("InfraRed    : ");
-     Serial.println(Ir);
-     Serial.print("Visible     : ");
-     Serial.println(Visi);
-     Serial.println();
-     Serial.print("-------------------");
-     Serial.println();
-     
-     if (Lux < 5) {
-     Serial.println(" Star Glow");
-     } 
-     else if (Lux < 10) {
-     Serial.println("  Night Time");
-     } 
-     else if (Lux < 200) {
-     Serial.println("  Dim");
-     }
-     else if (Lux < 455) {
-     Serial.println(" Sunrise/Sunset");
-     }     
-     else if (Lux < 500) {
-     Serial.println("  Light");
-     } 
-     else if (Lux < 800) {
-     Serial.println("  Bright");
-     } 
-     else {
-     Serial.println("  Very bright");
-     }
-     Serial.println();
-     Serial.print("-------------------");
-     */
-
-    //Serial.print("IR: "); Serial.print(ir);  // Serial.print("\t\t");
-    //Serial.print("Full: "); Serial.print(full); //  Serial.print("\t");
-    //Serial.print("Visible: "); Serial.print(full - ir);//   Serial.print("\t");
-    //Serial.print("Lux: "); Serial.println(tsl.calculateLux(full, ir));
 
     sendData(Temp, Humi, Light, Baro, HI, Inside, Dew, wind, Lux, Chill, Ir, Visi, Lux1, Alt, Time, Cloud);//, Sample
-    
-    
 }
    
   lastConnected = client.connected();
@@ -528,7 +402,7 @@ Time	//16
 
   else {
     // if we couldn't make a connection to "Cosm.com" Serial the time of the occurance:
-   
+   /*
     DateTime now = RTC.now();//Read the RTC
     const uint8_t h = now.hour();
     const uint8_t hr_12 = h%12;
@@ -559,7 +433,7 @@ Time	//16
     Serial.println();
 
     Serial.println("disconnecting.");
-    
+    */
     client.stop();
   }
   lastConnectionTime = millis();
