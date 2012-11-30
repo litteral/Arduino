@@ -1,7 +1,10 @@
 
-//Binary sketch size: 28,934 bytes (of a 32,256 byte maximum)
-
-
+//Binary sketch size: 29,274 bytes (of a 32,256 byte maximum)
+/*
+ *  Anemometer code modified for use with an NRG40c Anemometer- 
+ *-converted to use a single hall effect sensor
+ * ORIGINAL Authors: M.A. de Pablo & C. de Pablo S., 2010
+*/
 #include <Wire.h>
 #include <TSL2561.h>
 #include "RTClib.h"
@@ -210,8 +213,8 @@ void setup()
 
   
   // You can change the gain on the fly, to adapt to brighter/dimmer light situations
-  //tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
-  tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
+  tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
+  //tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
 
   // Changing the integration time gives you a longer time over which to sense light
   // longer timelines are slower, but are good in very low light situtations!
@@ -229,21 +232,38 @@ void loop(){
    purposes only: (saves Terminal space)
    */
   if (client.available()) {
-   // char c = client.read();
-   // Serial.print(c);
+    char c = client.read();
+    Serial.print(c);
   }
 
   // if there's no net connection, but there was one last time
   // through the loop, then stop the client:
   if (!client.connected() && lastConnected) {
-    Serial.println("DATA sent ---- disconnecting!."); 
-    Serial.println();
+    //Serial.println("DATA sent ---- disconnecting!."); 
+    //Serial.println();
     client.stop();
   }
   if(!client.connected() && (millis() - lastConnectionTime > postingInterval)) {
     uint32_t lum = tsl.getFullLuminosity();
     uint16_t ir, full;
-
+    
+/*Temp	//1
+Humi	//2
+Light	//3
+Baro	//4
+HI	//5
+Inside	//6
+Dew	//7
+wind	//8
+Lux	//9
+Chill	//10
+Ir	//11
+Visi	//12
+Lux1	//13
+Alt	//14
+Cloud	//15
+Time	//16
+*/
 
     float Ir =          (ir = lum >> 16);
     float Full =        (full = lum & 0xFFFF);
@@ -276,7 +296,7 @@ void loop(){
     {
       Chill=Temp;
     }
-    
+   /* 
     //Next: Read the RTC
     DateTime now = RTC.now();
     const uint8_t h = now.hour();
@@ -335,7 +355,7 @@ void loop(){
      Serial.print("Visible     : ");
      Serial.println(Visi);
      Serial.println();
-    /* 
+     
 
      Serial.print("Wind force  : ");
      Serial.println(winds[windforce]);
@@ -431,6 +451,24 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
     client.println(USERAGENT);
     client.print("Content-Length: ");
     // Count the BRACKETS () and the letters in the word and add one for the number following the coma
+    /*
+Temp	//1
+Humi	//2
+Light	//3
+Baro	//4
+HI	//5
+Inside	//6
+Dew	//7
+wind	//8
+Lux	//9
+Chill	//10
+Ir	//11
+Visi	//12
+Lux1	//13
+Alt	//14
+Cloud	//15
+Time	//16
+*/    
     int length = 7 + countDigits(Temp,2)                          //1
       + 2 + 7 + countDigits(Humi,2)                               //2
         + 2 + 8 + countDigits(Light,2)                            //3
@@ -490,6 +528,7 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
 
   else {
     // if we couldn't make a connection to "Cosm.com" Serial the time of the occurance:
+   
     DateTime now = RTC.now();//Read the RTC
     const uint8_t h = now.hour();
     const uint8_t hr_12 = h%12;
@@ -520,6 +559,7 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
     Serial.println();
 
     Serial.println("disconnecting.");
+    
     client.stop();
   }
   lastConnectionTime = millis();
