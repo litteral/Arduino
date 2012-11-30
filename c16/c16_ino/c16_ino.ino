@@ -10,18 +10,70 @@
 #include <Ethernet.h>
 #include <Adafruit_BMP085.h>
 #include "TSL2561.h"
+/*
+AM2302 (wired DHT22) temperature-humidity sensor
+http://www.adafruit.com/products/393
+-------------------------------------------------------------------------------------
+ Connection for the ADAFRUIT TSL2561 digital luminosity / lux / light sensor
+ https://www.adafruit.com/products/439 
 
-// Example for demonstrating the TSL2561 library - public domain!
+ connect SCL to analog 5
+ connect SDA to analog 4
+ connect VDD to 3.3V DC
+ connect GROUND to common ground
+ ADDR can be connected to ground, or vdd or left floating to change the i2c address
 
-// connect SCL to analog 5
-// connect SDA to analog 4
-// connect VDD to 3.3V DC
-// connect GROUND to common ground
-// ADDR can be connected to ground, or vdd or left floating to change the i2c address
-
-// The address will be different depending on whether you let
-// the ADDR pin float (addr 0x39), or tie it to ground or vcc. In those cases
-// use TSL2561_ADDR_LOW (0x29) or TSL2561_ADDR_HIGH (0x49) respectively
+ The address will be different depending on whether you let
+ the ADDR pin float (addr 0x39), or tie it to ground or vcc. In those cases
+ use TSL2561_ADDR_LOW (0x29) or TSL2561_ADDR_HIGH (0x49) respectively
+-------------------------------------------------------------------------------------
+Connection for the ADAFRUIT BMP085 Barometric Pressure/Temperature/Altitude Sensor- 5V ready!
+https://www.adafruit.com/products/391
+ Connect VCC of the BMP085 sensor to 3.3V (NOT 5.0V!)
+ Connect GND to Ground
+ Connect SCL to i2c clock - on '168/'328 Arduino Uno/Duemilanove/etc thats Analog 5
+ Connect SDA to i2c data - on '168/'328 Arduino Uno/Duemilanove/etc thats Analog 4
+ EOC is not used, it signifies an end of conversion
+ XCLR is a reset pin, also not used here
+-------------------------------------------------------------------------------------
+ Connections for the ADAFRUIT DS1307 Real Time Clock breakout board kit
+ https://www.adafruit.com/products/264
+// Date and time functions using a DS1307 RTC connected via I2C and Wire lib.
+--------------IMPORTANT NOTE ON THE ADAFRUIT DS1307---------------------------------- 
+DoNot connect the two resistors if making this BOB, If you have already made the RTC DS1307 BOB
+DISCONNECT thge two resistors Desolder or CLIP them!!!
+-------------------------------------------------------------------------------------
+Also: some nice code to display 12 hr....   :-)
+    DateTime now = RTC.now();//Read the RTC
+    const uint8_t h = now.hour();
+    const uint8_t hr_12 = h%12;
+    Serial.print("connection failed at : ");
+    //Serial.print();
+    Serial.print("Time        : ");
+    if(hr_12 < 10){                // Zero padding if value less than 10 ie."09" instead of "9"
+      Serial.print(" ");
+      Serial.print((h > 12) ? h - 12 : ((h == 0) ? 12 : h), DEC); // Conversion to AM/PM  
+    }
+    else{
+      Serial.print((h > 12) ? h - 12 : ((h == 0) ? 12 : h), DEC); // Conversion to AM/PM
+    }
+    Serial.print(':');
+    if(now.minute() < 10){         // Zero padding if value less than 10 ie."09" instead of "9"
+      Serial.print("0");
+      Serial.print(now.minute(), DEC);
+    }
+    else{
+      Serial.print(now.minute(), DEC);
+    }
+    if(h < 12){                  // Adding the AM/PM sufffix
+      Serial.print(" AM");
+    }
+    else{
+      Serial.print(" PM");
+    }
+-------------------------------------------------------------------------------------    
+*/
+//The Beginning
 TSL2561 tsl(TSL2561_ADDR_FLOAT); 
 #define ANEMOMETER 2 
 #define DHTTYPE DHT22 
@@ -52,7 +104,8 @@ unsigned int RPM = 0;          // Revolutions per minute
 float speedwind = 0;           // Wind speed (m/s)
 unsigned short windforce = 0;  // Beaufort Wind Force Scale
 
-// Reading the System Voltage
+// if you want a Reading of the System Voltage UNcomment
+/*
 long readVcc() {
   long result;
   // Read 1.1V reference against AVcc
@@ -65,6 +118,7 @@ long readVcc() {
   result = 1126400L / result; // Back-calculate AVcc in mV
   return result;
 }
+*/
 // Heat Index Function
 //reference: http://en.wikipedia.org/wiki/Heat_index
 double heatIndex(double Temperature, double Humidity)
@@ -101,14 +155,14 @@ EthernetClient client;
 IPAddress server(64,94,18,121);  
 unsigned long lastConnectionTime = 0; 
 boolean lastConnected = false; 
-const unsigned long postingInterval = 5*1000; // 5 Second Cosm Upload Interval adding to the delay's in the sketch
+const unsigned long postingInterval = 5 * 1000; // 5 Second Cosm Upload Interval adding to the delay's in the sketch
 
 int Twc=0.0;	//Wind chill Temperature
 //LDR LUX Reading info
-int photocellPin = 3;          // the cell and 10K pulldown are connected to Analog pin 3
-int Lux;                       // the analog reading from the sensor divider
-int solarCell = 0;
-int Light;
+int photocellPin = 3;            // the cell and 10K pulldown are connected to A3
+//int Lux;                       // the analog reading from the sensor divider
+int solarCell = 0;               // Solar cell on A0
+//int Light;
 
 void setup() 
 { 
@@ -120,26 +174,24 @@ void setup()
   RTC.begin();// Connect the RTC bob
   bmp.begin();// Connect the Baro/Tmp bob
 
-  Serial.print("Arduino R3 Weather Station");
-  Serial.println();
-  Serial.print("BOOTING S.W. Ver 1.5 - Oct-2012");
-  Serial.println();
-  Serial.print("ip Address : ");
-  Serial.println(ip); //show the local I.P. address for debugging
+  Serial.println("Arduino R3 Weather Station");
+  Serial.println("BOOTING S.W. Ver 1.5 - Oct-2012");
+  Serial.println("ip Address : ");
+  Serial.print(ip); //show the local I.P. address for debugging
   Serial.println();
   Serial.print("-------------------");
   Serial.println();
   if (Ethernet.begin(mac) == 0) {
     Ethernet.begin(mac, ip);
   }
-  if (! RTC.isrunning()) {
-    Serial.println("DS1307 'NOT' running!");
-  }
+    if (tsl.begin()) {
+    Serial.println("TSL2561 sensor Active!");
+  } 
   else {
-    Serial.println("DS1307 'IS'  running!");
+    Serial.println("TSL2561 sensor Malfunction?");
+    while (1);
   }
-
-  /*
+    /*
     Uncomment line below and remove the RTC Battery 
    to set the RTC to the date & time this sketch was compiled
    Comment out soon after to use the RTC
@@ -147,13 +199,16 @@ void setup()
 
   //RTC.adjust(DateTime(__DATE__, __TIME__));  
 
-  if (tsl.begin()) {
-    Serial.println("TSL2561 sensor Active!");
-  } 
-  else {
-    Serial.println("TSL2561 sensor Malfunction?");
-    while (1);
+  
+  if (! RTC.isrunning()) {
+    Serial.println("DS1307 'NOT' running!");
   }
+  else {
+    Serial.println("DS1307 'IS'  running!");
+  }
+
+
+  
   // You can change the gain on the fly, to adapt to brighter/dimmer light situations
   //tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
   tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
@@ -174,15 +229,15 @@ void loop(){
    purposes only: (saves Terminal space)
    */
   if (client.available()) {
-    char c = client.read();
-    Serial.print(c);
+   // char c = client.read();
+   // Serial.print(c);
   }
 
   // if there's no net connection, but there was one last time
   // through the loop, then stop the client:
   if (!client.connected() && lastConnected) {
-    //Serial.println("disconnecting."); 
-    //Serial.println();
+    Serial.println("DATA sent ---- disconnecting!."); 
+    Serial.println();
     client.stop();
   }
   if(!client.connected() && (millis() - lastConnectionTime > postingInterval)) {
@@ -195,8 +250,8 @@ void loop(){
     float Visi =        (Full - Ir);
     float Lux1 =        (tsl.calculateLux(Full, Ir));
     float Chill =       (Twc);// The Wind Chill
-    float Lux =         analogRead(A3);        //Custom Lux Reading for the sensor I have. Adjust yours to your needs.
-    float Alt =         (bmp.readAltitude(102500)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
+    float Lux =         analogRead(photocellPin);        //Custom Lux Reading for the sensor I have. Adjust your resistor to your needs.
+    float Alt =         (bmp.readAltitude(102000)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
     float Baro =        (bmp.readPressure()) * 0.0002953;  //convert Pa to inches of Hg 
     float Inside =      (bmp.readTemperature)(); 
     float Humi =        (dht.readHumidity());              //Read the DHT humidity sensor
@@ -221,14 +276,14 @@ void loop(){
     {
       Chill=Temp;
     }
-
+    
     //Next: Read the RTC
     DateTime now = RTC.now();
     const uint8_t h = now.hour();
     const uint8_t hr_12 = h%12;
 
     //29,008 with Serial Output ? without 27,310 use to debug or send it to your monitor for up to the second weather
-    /*
+    
     Serial.println();
      Serial.print("Time        : ");
      if(hr_12 < 10){                                       // Zero padding if value less than 10 ie."09" instead of "9"
@@ -263,49 +318,59 @@ void loop(){
      Serial.println();
      //Serial.print(" Starting measurements...");
      //Serial.println(" finished.");
-     Serial.print("Sample#     : ");
-     Serial.println(Sample);    
-     Serial.print("Counter     : ");
-     Serial.println(counter);
-     Serial.print("RPM         : ");
-     Serial.println(RPM);
+     //Serial.print("Sample#     : ");
+     //Serial.println(Sample);    
+     //Serial.print("Counter     : ");
+     //Serial.println(counter);
+     //Serial.print("RPM         : ");
+     //Serial.println(RPM);
+     Serial.print("Altitude    : ");
+     Serial.println(Alt);
+     Serial.print("Wind speed  : ");
+     Serial.println(wind); // pin (D2)
+     Serial.print("Lux1        : ");
+     Serial.println(Lux1);
+     Serial.print("InfraRed    : ");
+     Serial.println(Ir);
+     Serial.print("Visible     : ");
+     Serial.println(Visi);
+     Serial.println();
+    /* 
+
+     Serial.print("Wind force  : ");
+     Serial.println(winds[windforce]);
+     //Serial.print("System Volts: ");
+     //Serial.println(readVcc() / 1000. , DEC); // ommited to save Computations and space, goto top to uncomment the math!
+     Serial.print("Solar Volts : ");
+     Serial.println(Light) ;
+     Serial.print("Altitude    : ");
+     Serial.println(Alt);
+     Serial.print("Baro        : ");
+     Serial.println(Baro);
+     Serial.print("Humidity    : ");
+     Serial.println(Humi);
+     Serial.print("heatIndex   : ");
+     Serial.println(HI);
+     Serial.print("Outside     : ");
+     Serial.println(Temp);
+     Serial.print("WindChill   : ");
+     Serial.println(Chill);
+     Serial.print("Dew Point   : ");
+     Serial.println(Dew);
+     Serial.print("Inside      : ");
+     Serial.println(Inside);
+     Serial.print("Lux         : ");
+     Serial.println(Lux);//pin (A3)
+     Serial.print("Lux1        : ");
+     Serial.println(Lux1);
+     Serial.print("InfraRed    : ");
+     Serial.println(Ir);
+     Serial.print("Visible     : ");
+     Serial.println(Visi);
+     Serial.println();
+     Serial.print("-------------------");
+     Serial.println();
      
-    Serial.print("Wind speed  : ");
-    Serial.println(wind); // pin (D2)
-    Serial.print("Wind force  : ");
-    Serial.println(winds[windforce]);
-    Serial.print("System Volts: ");
-    Serial.println(readVcc() / 1000. , DEC);
-    Serial.print("Solar Volts : ");
-    Serial.println(Light) ;
-    Serial.print("Altitude    : ");
-    Serial.println(Alt);
-    Serial.print("Baro        : ");
-    Serial.println(Baro);
-    Serial.print("Humidity    : ");
-    Serial.println(Humi);
-    Serial.print("heatIndex   : ");
-    Serial.println(HI);
-    Serial.print("Outside     : ");
-    Serial.println(Temp);
-    Serial.print("WindChill   : ");
-    Serial.println(Chill);
-    Serial.print("Dew Point   : ");
-    Serial.println(Dew);
-    Serial.print("Inside      : ");
-    Serial.println(Inside);
-    Serial.print("Lux         : ");
-    Serial.println(Lux);//pin (A3)
-    Serial.print("Lux1        : ");
-    Serial.println(Lux1);
-    Serial.print("InfraRed    : ");
-    Serial.println(Ir);
-    Serial.print("Visible     : ");
-    Serial.println(Visi);
-    Serial.println();
-    Serial.print("-------------------");
-    Serial.println();
-    
      if (Lux < 5) {
      Serial.println(" Star Glow");
      } 
@@ -336,20 +401,26 @@ void loop(){
     //Serial.print("Visible: "); Serial.print(full - ir);//   Serial.print("\t");
     //Serial.print("Lux: "); Serial.println(tsl.calculateLux(full, ir));
 
-    sendData(Temp, Humi, Light, Baro, HI, Inside, Dew, wind, Lux, Chill, Ir, Visi, Lux1, Alt);//, Sample
-  }
+    sendData(Temp, Humi, Light, Baro, HI, Inside, Dew, wind, Lux, Chill, Ir, Visi, Lux1, Alt, Time, Cloud);//, Sample
+    
+    
+}
+   
   lastConnected = client.connected();
 }
+
+
 void sendData(float Temp, float Humi, float Light, float Baro,  float HI, float Inside, 
-float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1, float Alt)
+float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1, float Alt, float Time, float Cloud)
 {
-//  
+  //  
   if (client.connected()) client.stop();
   if (client.connect(server, 80)) {
+    Serial.println("connecting...");
+    Serial.println();
+    Serial.println("Sending DATA!");
 
 
-    //Serial.println("connecting...");
-    //Serial.println();
     client.print("PUT /v2/feeds/");
     client.print(FEEDID);
     client.println(".csv HTTP/1.1");
@@ -359,11 +430,24 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
     client.print("User-Agent: ");
     client.println(USERAGENT);
     client.print("Content-Length: ");
-    int length =  15 + countDigits(Temp,2) + 2 + 5 + countDigits(Humi,2) + 2 + 6 + countDigits(Light,2) + 2 + 5 + countDigits(Baro,2)
-    + 2 + 3 + countDigits(HI,2) + 2 + 7 + countDigits(Inside,2) + 2 + 4 + countDigits(Dew,2) + 2 + 5 + countDigits(wind,2)
-    + 2 + 4 + countDigits(Lux,2) + 2 + 6 + countDigits(Chill,2) + 2 + 3 + countDigits(Ir,2)
-    + 2 + 5 + countDigits(Visi,2) + 2 + 5 + countDigits(Lux1,2)+ 2 + 4 + countDigits(Alt,2);
-     
+    // Count the BRACKETS () and the letters in the word and add one for the number following the coma
+    int length = 7 + countDigits(Temp,2)                          //1
+      + 2 + 7 + countDigits(Humi,2)                               //2
+        + 2 + 8 + countDigits(Light,2)                            //3
+          + 2 + 7 + countDigits(Baro,2)                           //4
+            + 2 + 5 + countDigits(HI,2)                           //5
+              + 2 + 9 + countDigits(Inside,2)                     //6
+                + 2 + 6 + countDigits(Dew,2)                      //7
+                  + 2 + 7 + countDigits(wind,2)                   //8
+                    + 2 + 6 + countDigits(Lux,2)                  //9
+                      + 2 + 8 + countDigits(Chill,2)              //10
+                        + 2 + 5 + countDigits(Ir,2)               //11
+                          + 2 + 7 + countDigits(Visi,2)           //12
+                            + 2 + 7 + countDigits(Lux1,2)         //13
+                              + 2 + 6 + countDigits(Alt,2)        //14
+                               + 2 + 8 + countDigits(Cloud,2)     //15
+                                 + 2 + 7 + countDigits(Time,2);   //16
+
     client.println(length);
     client.println("Content-Type: text/csv");
     client.println("Connection: close");
@@ -396,7 +480,11 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
     client.println(Lux1);
     client.print("Alt,");        //14
     client.println(Alt);
-  
+    client.print("Cloud,");      //15
+    client.println(Cloud);
+    client.print("Time,");       //16
+    client.println(Time);
+
   } 
 
 
@@ -405,7 +493,8 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
     DateTime now = RTC.now();//Read the RTC
     const uint8_t h = now.hour();
     const uint8_t hr_12 = h%12;
-
+    Serial.print("connection failed at : ");
+    //Serial.print();
     Serial.print("Time        : ");
     if(hr_12 < 10){                // Zero padding if value less than 10 ie."09" instead of "9"
       Serial.print(" ");
@@ -430,6 +519,7 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
     }
     Serial.println();
 
+    Serial.println("disconnecting.");
     client.stop();
   }
   lastConnectionTime = millis();
@@ -527,6 +617,8 @@ void WindSpeed(){
 void addcount(){
   counter++;
 }
+
+
 
 
 
