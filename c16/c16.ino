@@ -1,10 +1,11 @@
 
-//Binary sketch size: 28,570 bytes (of a 32,256 byte maximum)
+//Binary sketch size: 22,492 bytes (of a 32,256 byte maximum)
 /*
  *  Anemometer code modified for use with an NRG40c Anemometer- 
- *-converted to use a single hall effect sensor
- * ORIGINAL Authors: M.A. de Pablo & C. de Pablo S., 2010
+ *- converted to use a single hall effect sensor
+ *  ORIGINAL Authors: M.A. de Pablo & C. de Pablo S., 2010
 */
+// And now, The Beginning !
 #include <Wire.h>
 #include <TSL2561.h>
 #include "RTClib.h"
@@ -16,6 +17,8 @@
 /*
 AM2302 (wired DHT22) temperature-humidity sensor
 http://www.adafruit.com/products/393
+
+Connected to sig to Analog pin A2, 3.3 vcc, gnd
 -------------------------------------------------------------------------------------
  Connection for the ADAFRUIT TSL2561 digital luminosity / lux / light sensor
  https://www.adafruit.com/products/439 
@@ -44,7 +47,7 @@ https://www.adafruit.com/products/391
 // Date and time functions using a DS1307 RTC connected via I2C and Wire lib.
 --------------IMPORTANT NOTE ON THE ADAFRUIT DS1307---------------------------------- 
 DoNot connect the two resistors if making this BOB, If you have already made the RTC DS1307 BOB
-DISCONNECT thge two resistors Desolder or CLIP them!!!
+DISCONNECT the two resistors either Desolder or CLIP them!!!
 -------------------------------------------------------------------------------------
 Also: some nice code to display 12 hr....   :-)
     DateTime now = RTC.now();//Read the RTC
@@ -76,7 +79,7 @@ Also: some nice code to display 12 hr....   :-)
     }
 -------------------------------------------------------------------------------------    
 */
-//The Beginning
+// Who loves POPTARTS?
 TSL2561 tsl(TSL2561_ADDR_FLOAT); 
 #define ANEMOMETER 2 
 #define DHTTYPE DHT22 
@@ -107,7 +110,7 @@ unsigned int RPM = 0;          // Revolutions per minute
 float speedwind = 0;           // Wind speed (m/s)
 unsigned short windforce = 0;  // Beaufort Wind Force Scale
 
-// if you want a Reading of the System Voltage UNcomment
+// if you want a Reading of the System Voltage UNcomment and call "readVcc()"
 /*
 long readVcc() {
   long result;
@@ -157,26 +160,26 @@ IPAddress ip(192,168,1,106);
 EthernetClient client;
 IPAddress server(64,94,18,121);  
 unsigned long lastConnectionTime = 0; 
-boolean lastConnected = false; 
-const unsigned long postingInterval = 5 * 1000; // 5 Second Cosm Upload Interval adding to the delay's in the sketch
+boolean lastConnected = false;
+// 10 Second Cosm Upload Interval, Adding to the delay's in the sketch gives me 16 so I cut the Cosm P.I. to 5
+const unsigned long postingInterval = 5 * 1000; 
 
 int Twc=0.0;	//Wind chill Temperature
 //LDR LUX Reading info
-int photocellPin = 3;            // the cell and 10K pulldown are connected to A3
-//int Lux;                       // the analog reading from the sensor divider
-int solarCell = 0;               // Solar cell on A0
-//int Light;
+int photocellPin = 3;// the cell and 10K pulldown are connected to A3 on the mast Just below the Anemometer
+//Solar Panel charging the batteries for the FARS (DHT22 in a PVC pipe) 
+int solarCell = 0;// Solar cell on A0 Atop the mast holding the NRG Anemometer
 
 void setup() 
 { 
 
-  pinMode(2, INPUT);
-  digitalWrite(2, HIGH);
-  Serial.begin(115200);
+  pinMode(2, INPUT);//NRG Anemometer
+  digitalWrite(2, HIGH);//NRG Anemometer
+ // Serial.begin(115200);
   dht.begin();// Connect the DHT22 sensor
   RTC.begin();// Connect the RTC bob
   bmp.begin();// Connect the Baro/Tmp bob
-
+/*
   Serial.println("Arduino R3 Weather Station");
   Serial.println("BOOTING S.W. Ver 1.5 - Nov-30-2012");
   Serial.println("ip Address : ");
@@ -194,30 +197,26 @@ void setup()
     Serial.println("TSL2561 sensor Malfunction?");
     while (1);
   }
-    /*
+  */
+ /*
     Uncomment line below and remove the RTC Battery 
    to set the RTC to the date & time this sketch was compiled
    Comment out soon after to use the RTC
-   */
+ */
 
   //RTC.adjust(DateTime(__DATE__, __TIME__));  
 
-  
+  /*
   if (! RTC.isrunning()) {
     Serial.println("DS1307 'NOT' running!");
   }
   else {
     Serial.println("DS1307 'IS'  running!");
   }
-
-
-  
-  // You can change the gain on the fly, to adapt to brighter/dimmer light situations
+*/
   tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
   //tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
 
-  // Changing the integration time gives you a longer time over which to sense light
-  // longer timelines are slower, but are good in very low light situtations!
   tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);  // shortest integration time (bright light)
   //tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);  // medium integration time (medium light)
   //tsl.setTiming(TSL2561_INTEGRATIONTIME_402MS);  // longest integration time (dim light)
@@ -227,15 +226,17 @@ void setup()
 void loop(){ 
 
   /*
-       if there's incoming data from the net connection.
+   if there's incoming data from the net connection.
    send it out the serial port.  This is for debugging
    purposes only: (saves Terminal space)
    */
+//-----------------------------------------------
+   /*
   if (client.available()) {
     char c = client.read();
     Serial.print(c);
   }
-
+*/
   // if there's no net connection, but there was one last time
   // through the loop, then stop the client:
   if (!client.connected() && lastConnected) {
@@ -310,9 +311,9 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
   //  
   if (client.connected()) client.stop();
   if (client.connect(server, 80)) {
-    Serial.println("connecting...");
-    Serial.println();
-    Serial.println("Sending DATA!");
+    //Serial.println("connecting...");
+    //Serial.println();
+    //Serial.println("Sending DATA!");
 
 
     client.print("PUT /v2/feeds/");
