@@ -18,7 +18,7 @@
 AM2302 (wired DHT22) temperature-humidity sensor
 http://www.adafruit.com/products/393
 
-Connected to sig to Analog pin A2, 3.3 vcc, gnd
+Connected the sig line to Analog pin A2, 3.3 vcc, gnd
 -------------------------------------------------------------------------------------
  Connection for the ADAFRUIT TSL2561 digital luminosity / lux / light sensor
  https://www.adafruit.com/products/439 
@@ -80,7 +80,7 @@ Also: some nice code to display 12 hr....   :-)
 -------------------------------------------------------------------------------------    
 */
 // Who loves POPTARTS?
-TSL2561 tsl(TSL2561_ADDR_FLOAT); 
+
 #define ANEMOMETER 2 
 #define DHTTYPE DHT22 
 #define DHTPIN (A2) 
@@ -93,22 +93,28 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 DHT dht(DHTPIN, DHTTYPE);
 //BARO/TEMP info
 Adafruit_BMP085 bmp;
-
+//TSL2561 info
+TSL2561 tsl(TSL2561_ADDR_FLOAT); 
 // Constants definitions for Anemometer
 const float pi = 3.14159265;  // pi number
 int period = 3000;           // Measurement period (miliseconds)
 int delaytime = 3000;        // Time between samples (miliseconds)
 int radio = 70; //NRG40c (70) Radius from vertical anemometer axis to a cup center (mm)
+// you dont need to include the following, this if you are only pushing to Cosm
 char* winds[] = {
   "Calm", "Light air", "Light breeze", "Gentle breeze", "Moderate breeze", "Fresh breeze", "Strong breeze", "Moderate gale", "Fresh gale", "Strong gale", "Storm", "Violent storm", "AHHHHHHHH!   Hurricane"};
 
 // Variable definitions for Anemometer
-
+// you dont need to include the following, this if you are only pushing to Cosm
 unsigned int Sample = 0;       // Sample number
-unsigned int counter = 0;      // B/W counter for sensor 
-unsigned int RPM = 0;          // Revolutions per minute
-float speedwind = 0;           // Wind speed (m/s)
-unsigned short windforce = 0;  // Beaufort Wind Force Scale
+
+// you dont need to include the following, this if you are only pushing to Cosm
+unsigned int counter = 0;      // B/W counter for sensor
+
+// you dont need to include the following, this if you are only pushing to Cosm
+unsigned int RPM = 0;          // Revolutions per minute(need this)
+float speedwind = 0;           // Wind speed (m/s)(need this)
+unsigned short windforce = 0;  // Beaufort Wind Force Scale(need this)
 
 // if you want a Reading of the System Voltage UNcomment and call "readVcc()"
 /*
@@ -125,7 +131,7 @@ long readVcc() {
   return result;
 }
 */
-// Heat Index Function
+// Heat Index Function (This is some realy HOT code!)
 //reference: http://en.wikipedia.org/wiki/Heat_index
 double heatIndex(double Temperature, double Humidity)
 {
@@ -138,7 +144,7 @@ double heatIndex(double Temperature, double Humidity)
   double rv = c1 + c2*T + c3*R + c4*T*R + c5*T2 + c6*R2 + c7*T*TR + c8*TR*R + c9*T2*R2;
   return rv;
 }
-// dewPoint function NOAA
+// dewPoint function NOAA (no not that kinda DOO)
 // reference: http://wahiduddin.net/calc/density_algorithms.htm 
 double dewPoint(double Temperature, double Humidity)
 {
@@ -152,7 +158,7 @@ double dewPoint(double Temperature, double Humidity)
   double T = log(VP/0.61078);   // temp var
   return (241.88 * T) / (17.558-T);
 }
-RTC_DS1307 RTC;// Real Time Clock
+RTC_DS1307 RTC;// Real Time Clock ( crap I'm late again!)
 //Ethernet card
 byte mac[] = {
   0x90, 0xA2, 0xDA, 0x00, 0xC1, 0xE1};
@@ -187,9 +193,11 @@ void setup()
   Serial.println();
   Serial.print("-------------------");
   Serial.println();
+  */
   if (Ethernet.begin(mac) == 0) {
     Ethernet.begin(mac, ip);
   }
+  /*
     if (tsl.begin()) {
     Serial.println("TSL2561 sensor Active!");
   } 
@@ -533,6 +541,7 @@ void WindSpeed(){
 void addcount(){
   counter++;
 }
+
 
 
 
