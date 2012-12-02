@@ -1,12 +1,10 @@
 
-//Binary sketch size: 28,040 bytes (of a 32,256 byte maximum)
-
+//Binary sketch size: 28,570 bytes (of a 32,256 byte maximum)
 /*
  *  Anemometer code modified for use with an NRG40c Anemometer- 
- *- converted to use a single hall effect sensor
- *  ORIGINAL Authors: M.A. de Pablo & C. de Pablo S., 2010
+ *-converted to use a single hall effect sensor
+ * ORIGINAL Authors: M.A. de Pablo & C. de Pablo S., 2010
 */
-// And now, The Beginning !
 #include <Wire.h>
 #include <TSL2561.h>
 #include "RTClib.h"
@@ -18,8 +16,6 @@
 /*
 AM2302 (wired DHT22) temperature-humidity sensor
 http://www.adafruit.com/products/393
-
-Connected the sig line to Analog pin A2, 3.3 vcc, gnd
 -------------------------------------------------------------------------------------
  Connection for the ADAFRUIT TSL2561 digital luminosity / lux / light sensor
  https://www.adafruit.com/products/439 
@@ -48,7 +44,7 @@ https://www.adafruit.com/products/391
 // Date and time functions using a DS1307 RTC connected via I2C and Wire lib.
 --------------IMPORTANT NOTE ON THE ADAFRUIT DS1307---------------------------------- 
 DoNot connect the two resistors if making this BOB, If you have already made the RTC DS1307 BOB
-DISCONNECT the two resistors either Desolder or CLIP them!!!
+DISCONNECT thge two resistors Desolder or CLIP them!!!
 -------------------------------------------------------------------------------------
 Also: some nice code to display 12 hr....   :-)
     DateTime now = RTC.now();//Read the RTC
@@ -80,8 +76,8 @@ Also: some nice code to display 12 hr....   :-)
     }
 -------------------------------------------------------------------------------------    
 */
-// Who loves POPTARTS?
-
+//The Beginning
+TSL2561 tsl(TSL2561_ADDR_FLOAT); 
 #define ANEMOMETER 2 
 #define DHTTYPE DHT22 
 #define DHTPIN (A2) 
@@ -94,30 +90,24 @@ Also: some nice code to display 12 hr....   :-)
 DHT dht(DHTPIN, DHTTYPE);
 //BARO/TEMP info
 Adafruit_BMP085 bmp;
-//TSL2561 info
-TSL2561 tsl(TSL2561_ADDR_FLOAT); 
+
 // Constants definitions for Anemometer
 const float pi = 3.14159265;  // pi number
 int period = 3000;           // Measurement period (miliseconds)
 int delaytime = 3000;        // Time between samples (miliseconds)
 int radio = 70; //NRG40c (70) Radius from vertical anemometer axis to a cup center (mm)
-// you dont need to include the following, this if you are only pushing to Cosm
 char* winds[] = {
   "Calm", "Light air", "Light breeze", "Gentle breeze", "Moderate breeze", "Fresh breeze", "Strong breeze", "Moderate gale", "Fresh gale", "Strong gale", "Storm", "Violent storm", "AHHHHHHHH!   Hurricane"};
 
 // Variable definitions for Anemometer
-// you dont need to include the following, this if you are only pushing to Cosm
+
 unsigned int Sample = 0;       // Sample number
+unsigned int counter = 0;      // B/W counter for sensor 
+unsigned int RPM = 0;          // Revolutions per minute
+float speedwind = 0;           // Wind speed (m/s)
+unsigned short windforce = 0;  // Beaufort Wind Force Scale
 
-// you dont need to include the following, this if you are only pushing to Cosm
-unsigned int counter = 0;      // B/W counter for sensor
-
-// you dont need to include the following, this if you are only pushing to Cosm
-unsigned int RPM = 0;          // Revolutions per minute(need this)
-float speedwind = 0;           // Wind speed (m/s)(need this)
-unsigned short windforce = 0;  // Beaufort Wind Force Scale(need this)
-
-// if you want a Reading of the System Voltage UNcomment and call "readVcc()"
+// if you want a Reading of the System Voltage UNcomment
 /*
 long readVcc() {
   long result;
@@ -132,7 +122,7 @@ long readVcc() {
   return result;
 }
 */
-// Heat Index Function (This is some realy HOT code!)
+// Heat Index Function
 //reference: http://en.wikipedia.org/wiki/Heat_index
 double heatIndex(double Temperature, double Humidity)
 {
@@ -145,7 +135,7 @@ double heatIndex(double Temperature, double Humidity)
   double rv = c1 + c2*T + c3*R + c4*T*R + c5*T2 + c6*R2 + c7*T*TR + c8*TR*R + c9*T2*R2;
   return rv;
 }
-// dewPoint function NOAA (no not that kinda DOO)
+// dewPoint function NOAA
 // reference: http://wahiduddin.net/calc/density_algorithms.htm 
 double dewPoint(double Temperature, double Humidity)
 {
@@ -159,7 +149,7 @@ double dewPoint(double Temperature, double Humidity)
   double T = log(VP/0.61078);   // temp var
   return (241.88 * T) / (17.558-T);
 }
-RTC_DS1307 RTC;// Real Time Clock ( crap I'm late again!)
+RTC_DS1307 RTC;// Real Time Clock
 //Ethernet card
 byte mac[] = {
   0x90, 0xA2, 0xDA, 0x00, 0xC1, 0xE1};
@@ -167,26 +157,26 @@ IPAddress ip(192,168,1,106);
 EthernetClient client;
 IPAddress server(64,94,18,121);  
 unsigned long lastConnectionTime = 0; 
-boolean lastConnected = false;
-// 10 Second Cosm Upload Interval, Adding to the delay's in the sketch gives me 16 so I cut the Cosm P.I. to 5
-const unsigned long postingInterval = 5 * 1000; 
+boolean lastConnected = false; 
+const unsigned long postingInterval = 5 * 1000; // 5 Second Cosm Upload Interval adding to the delay's in the sketch
 
 int Twc=0.0;	//Wind chill Temperature
 //LDR LUX Reading info
-int photocellPin = 3;// the cell and 10K pulldown are connected to A3 on the mast Just below the Anemometer
-//Solar Panel charging the batteries for the FARS (DHT22 in a PVC pipe) 
-int solarCell = 0;// Solar cell on A0 Atop the mast holding the NRG Anemometer
+int photocellPin = 3;            // the cell and 10K pulldown are connected to A3
+//int Lux;                       // the analog reading from the sensor divider
+int solarCell = 0;               // Solar cell on A0
+//int Light;
 
 void setup() 
 { 
 
-  pinMode(2, INPUT);//NRG Anemometer
-  digitalWrite(2, HIGH);//NRG Anemometer
+  pinMode(2, INPUT);
+  digitalWrite(2, HIGH);
   Serial.begin(115200);
   dht.begin();// Connect the DHT22 sensor
   RTC.begin();// Connect the RTC bob
   bmp.begin();// Connect the Baro/Tmp bob
-/*
+
   Serial.println("Arduino R3 Weather Station");
   Serial.println("BOOTING S.W. Ver 1.5 - Nov-30-2012");
   Serial.println("ip Address : ");
@@ -194,11 +184,9 @@ void setup()
   Serial.println();
   Serial.print("-------------------");
   Serial.println();
-  */
   if (Ethernet.begin(mac) == 0) {
     Ethernet.begin(mac, ip);
   }
-  
     if (tsl.begin()) {
     Serial.println("TSL2561 sensor Active!");
   } 
@@ -206,12 +194,11 @@ void setup()
     Serial.println("TSL2561 sensor Malfunction?");
     while (1);
   }
- 
- /*
+    /*
     Uncomment line below and remove the RTC Battery 
    to set the RTC to the date & time this sketch was compiled
    Comment out soon after to use the RTC
- */
+   */
 
   //RTC.adjust(DateTime(__DATE__, __TIME__));  
 
@@ -223,9 +210,14 @@ void setup()
     Serial.println("DS1307 'IS'  running!");
   }
 
+
+  
+  // You can change the gain on the fly, to adapt to brighter/dimmer light situations
   tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
   //tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
 
+  // Changing the integration time gives you a longer time over which to sense light
+  // longer timelines are slower, but are good in very low light situtations!
   tsl.setTiming(TSL2561_INTEGRATIONTIME_13MS);  // shortest integration time (bright light)
   //tsl.setTiming(TSL2561_INTEGRATIONTIME_101MS);  // medium integration time (medium light)
   //tsl.setTiming(TSL2561_INTEGRATIONTIME_402MS);  // longest integration time (dim light)
@@ -235,12 +227,10 @@ void setup()
 void loop(){ 
 
   /*
-   if there's incoming data from the net connection.
+       if there's incoming data from the net connection.
    send it out the serial port.  This is for debugging
    purposes only: (saves Terminal space)
    */
-//-----------------------------------------------
-  
   if (client.available()) {
     char c = client.read();
     Serial.print(c);
@@ -257,23 +247,22 @@ void loop(){
     uint32_t lum = tsl.getFullLuminosity();
     uint16_t ir, full;
     
-/*
-    Temp	//1
-    Humi	//2
-    Light	//3
-    Baro	//4
-    HI  	//5
-    Inside	//6
-    Dew  	//7
-    wind	//8
-    Lux  	//9
-    Chill	//10
-    Ir	        //11
-    Visi	//12
-    Lux1	//13
-    Alt  	//14
-    Cloud	//15
-    Time	//16
+/*Temp	//1
+Humi	//2
+Light	//3
+Baro	//4
+HI	//5
+Inside	//6
+Dew	//7
+wind	//8
+Lux	//9
+Chill	//10
+Ir	//11
+Visi	//12
+Lux1	//13
+Alt	//14
+Cloud	//15
+Time	//16
 */
 
     float Ir =          (ir = lum >> 16);
@@ -282,8 +271,8 @@ void loop(){
     float Lux1 =        (tsl.calculateLux(Full, Ir));
     float Chill =       (Twc);// The Wind Chill
     float Lux =         analogRead(photocellPin);        //Custom Lux Reading for the sensor I have. Adjust your resistor to your needs.
-    float Alt =         (bmp.readAltitude(102550)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
-    float Baro =        (bmp.readPressure() * 0.0002953);  //convert Pa to inches of Hg 
+    float Alt =         (bmp.readAltitude(102500)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
+    float Baro =        (bmp.readPressure()* 0.0002953); ;  //convert Pa to inches of Hg 
     float Inside =      (bmp.readTemperature)(); 
     float Humi =        (dht.readHumidity());              //Read the DHT humidity sensor
     float Temp =        (dht.readTemperature(2)); //Read the DHT Temp sensor (OutSide)
@@ -292,14 +281,12 @@ void loop(){
     float Dew =         (dewPoint(Temp, Humi)); //DHT22   
     float HI =          (heatIndex(Temp, Humi));//DHT22
     float wind =        (speedwind) / 0.445;            //Anemometer (NRG 40C) has 2 south poles,  2 pulses per revolution and / 0.445 to covert from m/s to MPH
-    float Cloud =       ((Temp - Dew) / 4.4 * 10.00 + Alt); // Cloud Base ref: http://en.wikipedia.org/wiki/Cloud_base
+    float Cloud =       ((Temp - Dew) / 4.4 * 10000 + Alt); // Cloud Base ref: http://en.wikipedia.org/wiki/Cloud_base
     windvelocity();
     Sample++;
     RPMcalc();
     WindSpeed();
-Serial.println("Light");
-Serial.print(Light);
-Serial.println();
+
     //WindChill
     if ((Temp <50.0) && (wind > 3.0))
     {
@@ -544,7 +531,6 @@ void WindSpeed(){
 void addcount(){
   counter++;
 }
-
 
 
 
