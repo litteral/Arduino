@@ -1,5 +1,5 @@
 
-//Binary sketch size: 22,492 bytes (of a 32,256 byte maximum)
+//Binary sketch size: 22,776 bytes (of a 32,256 byte maximum)
 /*
  *  Anemometer code modified for use with an NRG40c Anemometer- 
  *- converted to use a single hall effect sensor
@@ -175,7 +175,7 @@ void setup()
 
   pinMode(2, INPUT);//NRG Anemometer
   digitalWrite(2, HIGH);//NRG Anemometer
- // Serial.begin(115200);
+  Serial.begin(115200);
   dht.begin();// Connect the DHT22 sensor
   RTC.begin();// Connect the RTC bob
   bmp.begin();// Connect the Baro/Tmp bob
@@ -248,22 +248,23 @@ void loop(){
     uint32_t lum = tsl.getFullLuminosity();
     uint16_t ir, full;
     
-/*Temp	//1
-Humi	//2
-Light	//3
-Baro	//4
-HI	//5
-Inside	//6
-Dew	//7
-wind	//8
-Lux	//9
-Chill	//10
-Ir	//11
-Visi	//12
-Lux1	//13
-Alt	//14
-Cloud	//15
-Time	//16
+/*
+    Temp	//1
+    Humi	//2
+    Light	//3
+    Baro	//4
+    HI  	//5
+    Inside	//6
+    Dew  	//7
+    wind	//8
+    Lux  	//9
+    Chill	//10
+    Ir	        //11
+    Visi	//12
+    Lux1	//13
+    Alt  	//14
+    Cloud	//15
+    Time	//16
 */
 
     float Ir =          (ir = lum >> 16);
