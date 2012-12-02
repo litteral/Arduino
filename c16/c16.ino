@@ -198,7 +198,7 @@ void setup()
   if (Ethernet.begin(mac) == 0) {
     Ethernet.begin(mac, ip);
   }
-  /*
+  
     if (tsl.begin()) {
     Serial.println("TSL2561 sensor Active!");
   } 
@@ -206,7 +206,7 @@ void setup()
     Serial.println("TSL2561 sensor Malfunction?");
     while (1);
   }
-  */
+ 
  /*
     Uncomment line below and remove the RTC Battery 
    to set the RTC to the date & time this sketch was compiled
@@ -215,14 +215,14 @@ void setup()
 
   //RTC.adjust(DateTime(__DATE__, __TIME__));  
 
-  /*
+  
   if (! RTC.isrunning()) {
     Serial.println("DS1307 'NOT' running!");
   }
   else {
     Serial.println("DS1307 'IS'  running!");
   }
-*/
+
   tsl.setGain(TSL2561_GAIN_0X);         // set no gain (for bright situtations)
   //tsl.setGain(TSL2561_GAIN_16X);      // set 16x gain (for dim situations)
 
@@ -240,12 +240,12 @@ void loop(){
    purposes only: (saves Terminal space)
    */
 //-----------------------------------------------
-   /*
+  
   if (client.available()) {
     char c = client.read();
     Serial.print(c);
   }
-*/
+
   // if there's no net connection, but there was one last time
   // through the loop, then stop the client:
   if (!client.connected() && lastConnected) {
@@ -282,8 +282,8 @@ void loop(){
     float Lux1 =        (tsl.calculateLux(Full, Ir));
     float Chill =       (Twc);// The Wind Chill
     float Lux =         analogRead(photocellPin);        //Custom Lux Reading for the sensor I have. Adjust your resistor to your needs.
-    float Alt =         (bmp.readAltitude(102250)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
-    float Baro =        (bmp.readPressure()) * 0.0002953;  //convert Pa to inches of Hg 
+    float Alt =         (bmp.readAltitude(102550)/3.3);    //Or....Replace the Figure in "(101325)" with 8.5'; Static altitude reading (Im at sea level)
+    float Baro =        (bmp.readPressure() * 0.0002953);  //convert Pa to inches of Hg 
     float Inside =      (bmp.readTemperature)(); 
     float Humi =        (dht.readHumidity());              //Read the DHT humidity sensor
     float Temp =        (dht.readTemperature(2)); //Read the DHT Temp sensor (OutSide)
@@ -297,7 +297,9 @@ void loop(){
     Sample++;
     RPMcalc();
     WindSpeed();
-
+Serial.println("Light");
+Serial.print(Light);
+Serial.println();
     //WindChill
     if ((Temp <50.0) && (wind > 3.0))
     {
@@ -321,9 +323,9 @@ float Dew, float wind, float Lux, float Chill, float Ir, float Visi, float Lux1,
   //  
   if (client.connected()) client.stop();
   if (client.connect(server, 80)) {
-    //Serial.println("connecting...");
-    //Serial.println();
-    //Serial.println("Sending DATA!");
+    Serial.println("connecting...");
+    Serial.println();
+    Serial.println("Sending DATA!");
 
 
     client.print("PUT /v2/feeds/");
