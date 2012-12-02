@@ -1,5 +1,6 @@
 
-//Binary sketch size: 22,776 bytes (of a 32,256 byte maximum)
+//Binary sketch size: 28,040 bytes (of a 32,256 byte maximum)
+
 /*
  *  Anemometer code modified for use with an NRG40c Anemometer- 
  *- converted to use a single hall effect sensor
