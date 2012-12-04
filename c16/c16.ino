@@ -1,5 +1,27 @@
 
 //Binary sketch size: 28,570 bytes (of a 32,256 byte maximum)
+ /*
+  Cosm sensor client
+ 
+ This sketch connects an analog sensor to Cosm (http://www.cosm.com)
+ using a Wiznet Ethernet shield. You can use the Arduino Ethernet shield, or
+ the Adafruit Ethernet shield, either one will work, as long as it's got
+ a Wiznet Ethernet module on board.
+ 
+ This example has been updated to use version 2.0 of the cosm.com API. 
+ To make it work, create a feed with a datastream, and give it the ID
+ sensor1. Or change the code below to match your feed.
+ 
+ 
+ Circuit:
+ * Analog and Digital I2C sensors attached to A0,A1,A2,A3--
+-- and I2C on 4 and 5
+ * Ethernet shield attached to pins 10, 11, 12, 13
+ 
+ created 15 March 2010
+ updated 14 May 2012
+ by Tom Igoe with input from Usman Haque and Joe Saavedr
+ Screwed up by FMBFLA
 /*Beta
  *  Anemometer code modified for use with an NRG40c Anemometer- 
  *-converted to use a single hall effect sensor
@@ -83,7 +105,7 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 #define DHTPIN (A2) 
 
 //COSM info
-#define APIKEY "Your APP KEY" // your cosm api key
+#define APIKEY "your cosm api key" // your cosm api key
 #define FEEDID 72737   // feed ID
 #define USERAGENT "Cosm Arduino Example (72737 )" // user agent is the project name
 //DHT info
@@ -531,6 +553,7 @@ void WindSpeed(){
 void addcount(){
   counter++;
 }
+
 
 
 
