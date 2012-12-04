@@ -1,6 +1,6 @@
 
 //Binary sketch size: 28,570 bytes (of a 32,256 byte maximum)
-/*
+/*Beta
  *  Anemometer code modified for use with an NRG40c Anemometer- 
  *-converted to use a single hall effect sensor
  * ORIGINAL Authors: M.A. de Pablo & C. de Pablo S., 2010
@@ -83,7 +83,7 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 #define DHTPIN (A2) 
 
 //COSM info
-#define APIKEY "d5acRBGU12Y0jGMK5rGi_65vri2SAKxTWDFqNkg5c3dIND0g" // your cosm api key
+#define APIKEY "Your APP KEY" // your cosm api key
 #define FEEDID 72737   // feed ID
 #define USERAGENT "Cosm Arduino Example (72737 )" // user agent is the project name
 //DHT info
@@ -531,6 +531,7 @@ void WindSpeed(){
 void addcount(){
   counter++;
 }
+
 
 
 
