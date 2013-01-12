@@ -105,7 +105,7 @@ TSL2561 tsl(TSL2561_ADDR_FLOAT);
 #define DHTPIN (A2) 
 
 //COSM info
-#define APIKEY "your cosm api key" // your cosm api key
+#define APIKEY "d5acRBGU12Y0jGMK5rGi_65vri2SAKxTWDFqNkg5c3dIND0g" // your cosm api key
 #define FEEDID 72737   // feed ID
 #define USERAGENT "Cosm Arduino Example (72737 )" // user agent is the project name
 //DHT info
@@ -224,13 +224,7 @@ void setup()
 
   //RTC.adjust(DateTime(__DATE__, __TIME__));  
 
-  
-  if (! RTC.isrunning()) {
-    Serial.println("DS1307 'NOT' running!");
-  }
-  else {
-    Serial.println("DS1307 'IS'  running!");
-  }
+
 
 
   
